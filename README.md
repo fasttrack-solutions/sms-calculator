@@ -4,6 +4,14 @@ SMS Calculator
 Simple library to help calculate the number of SMS corresponding to a certain text content.
 
 
+Install
+----------
+
+```shell
+$ npm i --save @fasttrack-solutions/sms-calculator
+```
+
+
 Usage
 ----------
 
