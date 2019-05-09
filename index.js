@@ -1,4 +1,5 @@
-const SMSCalculator = {
+'use strict';
+export const SMSCalculator = {
   // Encoding
   encoding: {
     UTF16: [70, 64, 67],
