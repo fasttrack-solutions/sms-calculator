@@ -1,0 +1,18 @@
+{
+  "name": "@fasttrack-solutions/sms-calculator",
+  "version": "1.0.0",
+  "description": "Used to count characters in a SMS , as some chars are counted twice etc",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fasttrack-solutions/sms-calculator.git"
+  },
+  "author": "fasttrack-solutions",
+  "bugs": {
+    "url": "https://github.com/fasttrack-solutions/sms-calculator/issues"
+  },
+  "homepage": "https://github.com/fasttrack-solutions/sms-calculator#readme"
+}
