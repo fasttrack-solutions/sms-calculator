@@ -8,7 +8,7 @@ Install
 ----------
 
 ```shell
-$ npm i --save @fasttrack-solutions/sms-calculator
+npm i --save @fasttrack-solutions/sms-calculator
 ```
 
 
