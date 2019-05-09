@@ -1,5 +1,6 @@
 SMS Calculator
 =============================
+![npm](https://img.shields.io/npm/v/@fasttrack-solutions/sms-calculator.svg)   
 Simple library to help calculate the number of SMS corresponding to a certain text content.
 
 
