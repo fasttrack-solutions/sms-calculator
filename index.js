@@ -59,7 +59,7 @@ export const SMSCalculator = {
   },
   getCount: function(text, enc = '') {
     let length = text.length;
-    const encoding = this.encodingLookup(enc, text)
+    const encoding = this.encodingLookup(text, enc)
     
     if (encoding === this.encoding.GSM_7BIT_EX) {
       length += this.getEscapedCharCount(text);
