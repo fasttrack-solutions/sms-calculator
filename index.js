@@ -57,9 +57,9 @@ export const SMSCalculator = {
       totalLength,
     };
   },
-  getCount: function(text) {
+  getCount: function(text, enc = '') {
     let length = text.length;
-    const encoding = this.detectEncoding(text);
+    const encoding = this.encodingLookup(text, enc)
     
     if (encoding === this.encoding.GSM_7BIT_EX) {
       length += this.getEscapedCharCount(text);
@@ -67,4 +67,8 @@ export const SMSCalculator = {
 
     return this.getPartData(length, encoding);
   },
+  encodingLookup(text, enc) {
+    if (enc === 'UCS2') return this.encoding.UTF16;
+    return this.detectEncoding(text)
+  }
 };

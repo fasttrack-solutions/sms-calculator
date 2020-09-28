@@ -1,6 +1,6 @@
 {
   "name": "@fasttrack-solutions/sms-calculator",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Used to count characters in a SMS , as some chars are counted twice etc",
   "main": "index.js",
   "scripts": {
