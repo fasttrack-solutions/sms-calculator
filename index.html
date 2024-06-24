@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My SMS Calculator</title>
+    <script src="index.js" type="module"></script>
+</head>
+<style>
+    body {
+        background: #bbb;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .content {
+        width: 80vw;
+        max-width: 800px;
+        margin: 40px auto;
+    }
+
+    #sms-area {
+        font-family: inherit;
+        border: 2px solid gray;
+        border-radius: 5px;
+        font-size: inherit;
+        display: block;
+        padding: 20px;
+        width: calc(100% - 40px);
+        min-height: 200px;
+        outline: none;
+    }
+
+    #sms-count {
+        color: #414141;
+        display: block;
+        text-align: right;
+        margin-top: 10px;
+    }
+</style>
+<body>
+    <div class="content">
+        <h1>SMS Calculator</h1>
+        <textarea id="sms-area"></textarea>
+        <span id="sms-count"></span>
+    </div>
+</body>
+<script>
+    (async () => {
+        const module = await import('./index.js');
+        const SMSCalculator = module.SMSCalculator;
+
+        let value = "";
+        const calculate = () => {
+            const count = SMSCalculator.getCount(value);
+
+            document.getElementById("sms-count").innerText = `${count.remaining} / ${count.numberOfSMS}`;
+        };
+
+        setInterval(() => {
+            const area = document.getElementById("sms-area");
+
+            if (value !== area.value) {
+                value = area.value;
+                calculate();
+            }
+        }, 100);
+
+        calculate();
+    })();
+    </script>
+</html>
