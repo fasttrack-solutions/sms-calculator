@@ -63,6 +63,11 @@ export const SMSCalculator = {
     
     if (encoding === this.encoding.GSM_7BIT_EX) {
       length += this.getEscapedCharCount(text);
+    } else if (encoding === this.encoding.UTF16) {
+      length = [...text].reduce(
+        (acc, char) => acc + (/[\u0100-\uFFFF]/.test(char) ? 2 : 1),
+        0
+      );
     }
 
     return this.getPartData(length, encoding);
