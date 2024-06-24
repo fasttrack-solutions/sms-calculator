@@ -53,13 +53,11 @@
         let value = "";
         const calculate = () => {
             const count = SMSCalculator.getCount(value);
-
             document.getElementById("sms-count").innerText = `${count.remaining} / ${count.numberOfSMS}`;
         };
 
         setInterval(() => {
             const area = document.getElementById("sms-area");
-
             if (value !== area.value) {
                 value = area.value;
                 calculate();

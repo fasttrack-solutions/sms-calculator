@@ -34,18 +34,21 @@ export const SMSCalculator = {
       return this.encoding.UTF16;
     }
   },
+
   getEscapedCharCount: function (text) {
     return [...text].reduce(
       (acc, char) => acc + (char.match(this.regex().gsmEscaped) ? 1 : 0),
       0
     );
   },
+
   getNonLatinCharCount: function (text) {
     return [...text].reduce(
       (acc, char) => acc + (char.match(this.regex().nonLatin) ? 1 : 0),
       0
     );
   },
+
   getPartData: function (totalLength, encoding) {
     let maxCharCount = encoding[2];
     let numberOfSMS = Math.ceil(totalLength / maxCharCount);
@@ -74,6 +77,7 @@ export const SMSCalculator = {
       totalLength,
     };
   },
+
   getCount: function (text, enc = "") {
     let length = text.length;
     const encoding = this.encodingLookup(text, enc);
@@ -84,6 +88,7 @@ export const SMSCalculator = {
     }
     return this.getPartData(length, encoding);
   },
+
   encodingLookup(text, enc) {
     if (enc === "UCS2") return this.encoding.UTF16;
     return this.detectEncoding(text);
