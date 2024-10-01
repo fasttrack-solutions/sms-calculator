@@ -1,96 +1,76 @@
 "use strict";
 export const SMSCalculator = {
-  // Encoding
-  encoding: {
-    UTF16: [70, 64, 67],
-    GSM_7BIT: [160, 146, 153],
-    GSM_7BIT_EX: [160, 146, 153],
-  },
-
-  // Charset
+  // GSM 7-bit character set
   charset: {
-    gsmEscaped: "\\^{}\\\\\\[~\\]|€",
-    gsm: "@£$¥èéùìòÇ\\nØø\\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà",
-    nonLatin: /[\u0100-\u1FFF\u2000-\u2BFF\u2C00-\uD7FF\uE000-\uFFFF]/, // non-latin characters except emojis
+    gsm: "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà",
+    gsmEscaped: "\\^{}\\\\\\[~\\]|€", // Include the Euro symbol and other extended characters
+    nonLatin: /[^\u0000-\u00FF]/ // Regex to match non-Latin characters or extended Unicode
   },
 
   // Regular Expression
   regex: function () {
     return {
-      gsm: RegExp(`^[${this.charset.gsm}]*$`),
-      gsmEscaped: RegExp(`^[\\${this.charset.gsmEscaped}]*$`),
-      gsmFull: RegExp(`^[${this.charset.gsm}${this.charset.gsmEscaped}]*$`),
-      nonLatin: RegExp(this.charset.nonLatin),
+      gsm: RegExp(`^[${this.charset.gsm}]*$`), // Only GSM-7 characters
+      gsmEscaped: RegExp(`[${this.charset.gsmEscaped}]`), // GSM-7 extended characters
+      nonLatin: this.charset.nonLatin // Non-Latin or extended characters
     };
   },
 
-  // Method
-  detectEncoding: function (text) {
-    if (text.match(this.regex().gsm)) {
-      return this.encoding.GSM_7BIT;
-    } else if (text.match(this.regex().gsmFull)) {
-      return this.encoding.GSM_7BIT_EX;
+  // Method to check if a message contains any non-GSM characters or special symbols
+  getEncodingType: function (text) {
+    for (let char of text) {
+      // Check if any character is non-GSM (extended characters handled as GSM-7)
+      if (!char.match(this.regex().gsm) && !char.match(this.regex().gsmEscaped)) {
+        return "UCS-2"; // Switch to UCS-2 only if there are non-GSM characters
+      }
+    }
+    return "GSM-7"; // All characters fit in GSM 7-bit (even extended ones)
+  },
+
+  // Method to calculate how many SMS messages are needed for the message
+  getCount: function (text) {
+    const encoding = this.getEncodingType(text);
+    let totalLength = text.length;
+
+    if (encoding === "UCS-2") {
+      // If UCS-2, each character takes 2 slots
+      const maxCharCountSingle = 70; // 70 characters for a single UCS-2 SMS
+      const maxCharCountMulti = 67;  // 67 characters per SMS when split into multiple parts
+      return this.calculateParts(totalLength, maxCharCountSingle, maxCharCountMulti, "UCS-2");
     } else {
-      return this.encoding.UTF16;
+      // If GSM-7, calculate with escaped characters and 1 slot per character (except escaped ones)
+      const escapedCharsCount = this.getEscapedCharCount(text);
+      totalLength += escapedCharsCount; // Account for escaped characters like the Euro symbol
+      const maxCharCountSingle = 160;  // 160 characters for a single GSM-7 SMS
+      const maxCharCountMulti = 153;   // 153 characters per SMS when split into multiple parts
+      return this.calculateParts(totalLength, maxCharCountSingle, maxCharCountMulti, "GSM-7");
     }
   },
 
+  // Calculate the number of parts based on message length and encoding limits
+  calculateParts: function (totalLength, maxCharCountSingle, maxCharCountMulti, encoding) {
+    if (totalLength <= maxCharCountSingle) {
+      // Fits in a single SMS
+      return {
+        encoding,
+        numberOfSMS: 1,
+        totalLength,
+        maxCharCount: maxCharCountSingle
+      };
+    } else {
+      // Needs to be split into multiple SMS parts
+      const numberOfSMS = Math.ceil(totalLength / maxCharCountMulti);
+      return {
+        encoding,
+        numberOfSMS,
+        totalLength,
+        maxCharCount: maxCharCountMulti
+      };
+    }
+  },
+
+  // Calculate number of GSM 7-bit escaped characters (like € which uses 2 slots)
   getEscapedCharCount: function (text) {
-    return [...text].reduce(
-      (acc, char) => acc + (char.match(this.regex().gsmEscaped) ? 1 : 0),
-      0
-    );
-  },
-
-  getNonLatinCharCount: function (text) {
-    return [...text].reduce(
-      (acc, char) => acc + (char.match(this.regex().nonLatin) ? 1 : 0),
-      0
-    );
-  },
-
-  getPartData: function (totalLength, encoding) {
-    let maxCharCount = encoding[2];
-    let numberOfSMS = Math.ceil(totalLength / maxCharCount);
-    let remaining =
-      maxCharCount -
-      (totalLength -
-        (encoding[0] + encoding[1] + encoding[2] * (numberOfSMS - 3)));
-
-    if (totalLength <= encoding[0]) {
-      maxCharCount = encoding[0];
-      numberOfSMS = 1;
-      remaining = maxCharCount - totalLength;
-    } else if (
-      totalLength > encoding[0] &&
-      totalLength <= encoding[0] + encoding[1]
-    ) {
-      maxCharCount = encoding[1];
-      numberOfSMS = 2;
-      remaining = maxCharCount - (totalLength - encoding[0]);
-    }
-
-    return {
-      maxCharCount,
-      numberOfSMS,
-      remaining,
-      totalLength,
-    };
-  },
-
-  getCount: function (text, enc = "") {
-    let length = text.length;
-    const encoding = this.encodingLookup(text, enc);
-    if (encoding === this.encoding.GSM_7BIT_EX) {
-      length += this.getEscapedCharCount(text);
-    } else if (encoding === this.encoding.UTF16) {
-      length += this.getNonLatinCharCount(text);
-    }
-    return this.getPartData(length, encoding);
-  },
-
-  encodingLookup(text, enc) {
-    if (enc === "UCS2") return this.encoding.UTF16;
-    return this.detectEncoding(text);
-  },
+    return [...text].reduce((acc, char) => acc + (char.match(this.regex().gsmEscaped) ? 1 : 0), 0);
+  }
 };
