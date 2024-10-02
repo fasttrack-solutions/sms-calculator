@@ -3,8 +3,8 @@ export const SMSCalculator = {
   // GSM 7-bit character set
   charset: {
     gsm: "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà",
-    gsmEscaped: "\\^{}\\\\\\[~\\]|€", // Include the Euro symbol and other extended characters
-    nonLatin: /[^\u0000-\u00FF]/ // Regex to match non-Latin characters or extended Unicode
+    gsmEscaped: "\\^{}\\\\\\[~\\]|€",
+    nonLatin: /[^\u0000-\u00FF]/
   },
 
   // Regular Expression
@@ -31,16 +31,16 @@ export const SMSCalculator = {
   getCount: function (text) {
     const encoding = this.getEncodingType(text);
     let totalLength = text.length;
-
+    const lineBreaksCount = this.getLineBreaksCount(text);
     if (encoding === "UCS-2") {
-      // If UCS-2, each character takes 2 slots
       const maxCharCountSingle = 70; // 70 characters for a single UCS-2 SMS
       const maxCharCountMulti = 67;  // 67 characters per SMS when split into multiple parts
+      totalLength += lineBreaksCount;
       return this.calculateParts(totalLength, maxCharCountSingle, maxCharCountMulti, "UCS-2");
     } else {
       // If GSM-7, calculate with escaped characters and 1 slot per character (except escaped ones)
       const escapedCharsCount = this.getEscapedCharCount(text);
-      totalLength += escapedCharsCount; // Account for escaped characters like the Euro symbol
+      totalLength += escapedCharsCount + lineBreaksCount;
       const maxCharCountSingle = 160;  // 160 characters for a single GSM-7 SMS
       const maxCharCountMulti = 153;   // 153 characters per SMS when split into multiple parts
       return this.calculateParts(totalLength, maxCharCountSingle, maxCharCountMulti, "GSM-7");
@@ -71,6 +71,15 @@ export const SMSCalculator = {
 
   // Calculate number of GSM 7-bit escaped characters (like € which uses 2 slots)
   getEscapedCharCount: function (text) {
-    return [...text].reduce((acc, char) => acc + (char.match(this.regex().gsmEscaped) ? 1 : 0), 0);
+    return [...text].reduce((acc, char) => {
+      return acc + (char.match(this.regex().gsmEscaped) ? 1 : 0);
+    }, 0);
+  },
+
+  // Calculate line-breaks
+  getLineBreaksCount: function (text) {
+    return [...text].reduce((acc, char) => {
+      return acc + (char === "\n" ? 2 : 0);
+    }, 0);
   }
 };
