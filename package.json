@@ -1,10 +1,10 @@
 {
   "name": "@fasttrack-solutions/sms-calculator",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Used to count characters in a SMS , as some chars are counted twice etc",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/.bin/jest"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
@@ -17,5 +17,11 @@
   "bugs": {
     "url": "https://github.com/fasttrack-solutions/sms-calculator/issues"
   },
-  "homepage": "https://github.com/fasttrack-solutions/sms-calculator#readme"
+  "homepage": "https://github.com/fasttrack-solutions/sms-calculator#readme",
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.4",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0"
+  }
 }
