@@ -32,7 +32,7 @@ export const SMSCalculator = {
   getCount: function (text) {
     const encoding = this.getEncodingType(text);
     let totalLength = text.length;
-    const lineBreaksCount = this.getLineBreaksCount(text);
+    const lineBreaksCount = this.getLineBreaksCount(text, encoding);
     if (encoding === "UCS-2") {
       const maxCharCountSingle = 70; // 70 characters for a single UCS-2 SMS
       const maxCharCountMulti = 67; // 67 characters per SMS when split into multiple parts
@@ -93,10 +93,11 @@ export const SMSCalculator = {
   },
 
   // Calculate line-breaks
-  getLineBreaksCount: function (text) {
-    const processedText = text.replace(/\n/g, "[Enter]");
-    return [...processedText].reduce((acc, char) => {
-      return acc + (char === "\n" ? 2 : 0);
+  getLineBreaksCount: function (text, encoding) {
+    text = text.replace(/\n/g, "[enter]");
+    const addition = encoding === "GSM-7" ? 2 : 1;
+    return [...text].reduce((acc, char) => {
+      return acc + (char === "\n" ? addition : 0);
     }, 0);
   },
 };
