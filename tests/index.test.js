@@ -273,6 +273,27 @@ describe("SMSCalculator", () => {
         maxCharCount: 70,
       },
     },
+    // with actually \n written in the text
+    {
+      name: "GSM-7 line break test",
+      text: "Hello,\\nThis is a message\\nwith multiple line breaks.\\nHow cool is that?\\n\\nBest regards,\\nJohn",
+      expected: {
+        encoding: "GSM-7",
+        numberOfSMS: 1,
+        totalLength: 101,
+        maxCharCount: 160,
+      },
+    },
+    {
+      name: "UCS-2 line break test with Spanish",
+      text: "¡Hola!\\n¿Cómo estás?\\nMe encanta este sitio.¡Es increible!",
+      expected: {
+        encoding: "UCS-2",
+        numberOfSMS: 1,
+        totalLength: 58,
+        maxCharCount: 70,
+      },
+    },
   ];
 
   textExamples.forEach(({ name, text, expected }, index) => {
