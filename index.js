@@ -4,7 +4,6 @@ export const SMSCalculator = {
   charset: {
     gsm: "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà",
     gsmEscaped: "\\^{}\\\\\\[~\\]|€",
-    nonLatin: /[^\u0000-\u00FF]/
   },
 
   // Regular Expression
@@ -12,7 +11,6 @@ export const SMSCalculator = {
     return {
       gsm: RegExp(`^[${this.charset.gsm}]*$`), // Only GSM-7 characters
       gsmEscaped: RegExp(`[${this.charset.gsmEscaped}]`), // GSM-7 extended characters
-      nonLatin: this.charset.nonLatin // Non-Latin or extended characters
     };
   },
 
@@ -20,7 +18,10 @@ export const SMSCalculator = {
   getEncodingType: function (text) {
     for (let char of text) {
       // Check if any character is non-GSM (extended characters handled as GSM-7)
-      if (!char.match(this.regex().gsm) && !char.match(this.regex().gsmEscaped)) {
+      if (
+        !char.match(this.regex().gsm) &&
+        !char.match(this.regex().gsmEscaped)
+      ) {
         return "UCS-2"; // Switch to UCS-2 only if there are non-GSM characters
       }
     }
@@ -31,31 +32,46 @@ export const SMSCalculator = {
   getCount: function (text) {
     const encoding = this.getEncodingType(text);
     let totalLength = text.length;
-    const lineBreaksCount = this.getLineBreaksCount(text);
+    const lineBreaksCount = this.getLineBreaksCount(text, encoding);
     if (encoding === "UCS-2") {
       const maxCharCountSingle = 70; // 70 characters for a single UCS-2 SMS
-      const maxCharCountMulti = 67;  // 67 characters per SMS when split into multiple parts
+      const maxCharCountMulti = 67; // 67 characters per SMS when split into multiple parts
       totalLength += lineBreaksCount;
-      return this.calculateParts(totalLength, maxCharCountSingle, maxCharCountMulti, "UCS-2");
+      return this.calculateParts(
+        totalLength,
+        maxCharCountSingle,
+        maxCharCountMulti,
+        "UCS-2"
+      );
     } else {
       // If GSM-7, calculate with escaped characters and 1 slot per character (except escaped ones)
       const escapedCharsCount = this.getEscapedCharCount(text);
       totalLength += escapedCharsCount + lineBreaksCount;
-      const maxCharCountSingle = 160;  // 160 characters for a single GSM-7 SMS
-      const maxCharCountMulti = 153;   // 153 characters per SMS when split into multiple parts
-      return this.calculateParts(totalLength, maxCharCountSingle, maxCharCountMulti, "GSM-7");
+      const maxCharCountSingle = 160; // 160 characters for a single GSM-7 SMS
+      const maxCharCountMulti = 153; // 153 characters per SMS when split into multiple parts
+      return this.calculateParts(
+        totalLength,
+        maxCharCountSingle,
+        maxCharCountMulti,
+        "GSM-7"
+      );
     }
   },
 
   // Calculate the number of parts based on message length and encoding limits
-  calculateParts: function (totalLength, maxCharCountSingle, maxCharCountMulti, encoding) {
+  calculateParts: function (
+    totalLength,
+    maxCharCountSingle,
+    maxCharCountMulti,
+    encoding
+  ) {
     if (totalLength <= maxCharCountSingle) {
       // Fits in a single SMS
       return {
         encoding,
         numberOfSMS: 1,
         totalLength,
-        maxCharCount: maxCharCountSingle
+        maxCharCount: maxCharCountSingle,
       };
     } else {
       // Needs to be split into multiple SMS parts
@@ -64,7 +80,7 @@ export const SMSCalculator = {
         encoding,
         numberOfSMS,
         totalLength,
-        maxCharCount: maxCharCountMulti
+        maxCharCount: maxCharCountMulti,
       };
     }
   },
@@ -77,9 +93,11 @@ export const SMSCalculator = {
   },
 
   // Calculate line-breaks
-  getLineBreaksCount: function (text) {
+  getLineBreaksCount: function (text, encoding) {
+    text = text.replace(/\n/g, "[enter]");
+    const addition = encoding === "GSM-7" ? 2 : 1;
     return [...text].reduce((acc, char) => {
-      return acc + (char === "\n" ? 2 : 0);
+      return acc + (char === "\n" ? addition : 0);
     }, 0);
-  }
+  },
 };
