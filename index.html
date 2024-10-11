@@ -53,7 +53,7 @@
         let value = "";
         const calculate = () => {
             const count = SMSCalculator.getCount(value);
-            document.getElementById("sms-count").innerText = `${count.remaining} / ${count.numberOfSMS}`;
+            document.getElementById("sms-count").innerText = `${count.totalLength} / ${count.numberOfSMS}`;
         };
 
         setInterval(() => {
